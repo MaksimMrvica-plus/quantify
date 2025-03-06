@@ -8,7 +8,7 @@ import numpy as np
 import pandas.core.frame
 import json
 import os
-import datetime
+from datetime import datetime, timedelta
 import collections
 from pandas import DataFrame
 
@@ -19,7 +19,7 @@ def str_day_to_datetime(str_day: str) -> datetime.date:
     :param str_day: 字符串日期  "20240101"
     :return: 日期类型
     """
-    return datetime.datetime.strptime(str_day, "%Y%m%d").date()
+    return datetime.strptime(str_day, "%Y%m%d").date()
 
 
 def datetime_to_str_day(date: datetime.date) -> str:
@@ -36,7 +36,7 @@ def now_datetime() -> datetime.date:
     获取当前日期
     :return: 日期类型
     """
-    return datetime.datetime.now().date()
+    return datetime.now().date()
 
 
 #   确保一个目录存在
@@ -51,3 +51,27 @@ def ensure_dir_exists(path_name: str) -> bool:
         return False
     else:
         return True
+
+
+def current_time_to_string(format_str="%Y-%m-%d %H:%M:%S"):
+    """
+    将当前时间转换为指定格式的字符串。
+
+    :param format_str: 时间格式字符串，默认为"%Y-%m-%d %H:%M:%S"
+    :return: 当前时间的字符串表示
+    """
+    now = datetime.now()
+    return now.strftime(format_str)
+
+
+def current_time_before_n_minutes(n, format_str="%Y-%m-%d %H:%M:%S"):
+    """
+    获取当前时间前N分钟的字符串格式。
+
+    :param n: 分钟数
+    :param format_str: 时间格式字符串，默认为"%Y-%m-%d %H:%M:%S"
+    :return: 当前时间前N分钟的字符串表示
+    """
+    now = datetime.now()
+    n_minutes_ago = now - timedelta(minutes=n)
+    return n_minutes_ago.strftime(format_str)

@@ -5,8 +5,9 @@ import time
 import os
 
 import pandas.core.frame
+import mplfinance as mpf
 
-from format_trans import *
+from st_time import *
 
 DATA_PATH = 'stock_data'
 HISTORY_DATA_PATH = 'history_data'
@@ -400,7 +401,222 @@ def check_stock_history_limit_up_date(pre_day: int) -> bool:
             print(_date)
             res_dict[code].append(_date)
 
-    # TODO
+
+def get_current_n_minutes_time_sharing(stock_code="000001", n=0, period="1") -> pd.DataFrame:
+    ss = ak.stock_zh_a_hist_min_em(stock_code, period="1", start_date=current_time_before_n_minutes(n + 1),
+                                   end_date=current_time_to_string())
+    return ss
+
+
+def get_a_share_main_board() -> pd.DataFrame:
+    try:
+        merged_data = ak.stock_zh_a_spot_em()
+        # 去掉无数据股票
+        merged_data = merged_data.dropna(subset=["最新价"])
+        # 筛选
+        main_board_stocks = merged_data[
+            (~merged_data["名称"].str.contains("ST"))
+            & (~merged_data["名称"].str.contains("C"))
+            & (~merged_data["名称"].str.contains("退市"))
+            & (
+                    (merged_data["代码"].str.startswith("00"))
+                    | (merged_data["代码"].str.startswith("60"))
+            )]
+        # 去重
+        main_board_stocks = main_board_stocks.drop_duplicates(subset=["代码"])
+        return main_board_stocks
+    except Exception as e:
+        print(f"获取时发生错误: {e}")
+        return pd.DataFrame()
+
+
+def has_limit_up_in_last_month(pd):
+    rescodes = []
+    codes = pd["代码"]
+    n = len(codes)
+    i = 1
+    now_date = datetime.now()
+    now_str = datetime_to_str_day(now_date)
+    pre_month = now_date - timedelta(days=30)
+    pre_str = datetime_to_str_day(pre_month)
+    print(f"查询日期在 {pre_str} 到 {now_str} 之间的涨停情况")
+    for code in codes:
+        print(code, "\t", i, "/", n)
+        i += 1
+        try:
+            stock_data = ak.stock_zh_a_hist(symbol=code, period="daily", start_date=pre_str, end_date=now_str)
+            if "涨跌幅" not in stock_data.columns:
+                print(f"数据列中没有找到 '涨跌幅' 列，无法判断。")
+                continue
+            limit_up_price = stock_data["涨跌幅"] >= 9.0
+            if limit_up_price.any():
+                rescodes.append(code)
+        except Exception as e:
+            print(f"获取 {code} 历史数据时发生错误: {e}")
+            continue
+    # 取交集
+    limitup = pd[pd["代码"].isin(rescodes)]
+    return limitup
+
+
+def today_rate_less_x(data, ratio):
+    data = data.drop_duplicates(subset=["代码"])
+    try:
+        if "涨跌幅" not in data.columns:
+            print("数据列中没有找到 '涨跌幅' 列，无法进行过滤。")
+            return pd.DataFrame()
+
+        # 过滤出 '涨跌幅' 小于 ratio 的行
+        filtered_data = data[data["涨跌幅"] < ratio]
+
+        return filtered_data
+    except Exception as e:
+        print(f"过滤数据时发生错误: {e}")
+        return data
+
+
+def today_price_less_x(data, price):
+    try:
+        if "最新价" not in data.columns:
+            print("数据列中没有找到 '最新价' 列，无法进行过滤。")
+            return pd.DataFrame()
+
+        # 过滤出 '现价' 小于 price 的行
+        filtered_data = data[data["最新价"] < price]
+
+        return filtered_data
+    except Exception as e:
+        print(f"过滤数据时发生错误: {e}")
+        return data
+
+
+# 去掉市值超过300亿的, value单位为 亿
+def filter_market_value(data, max_market_value=300):
+    try:
+        if "总市值" not in data.columns:
+            print("数据列中没有找到 '总市值' 列，无法进行过滤。")
+            return data
+        filtered_data = data[data["总市值"] < max_market_value * 100000000]
+        return filtered_data
+    except Exception as e:
+        print(f"过滤数据时发生错误: {e}")
+        return data
+
+
+def today_amplitude_more_than_x(data, ratio):
+    try:
+        if "涨跌幅" not in data.columns:
+            print("数据列中没有找到 '涨跌幅' 列，无法进行过滤。")
+            return pd.DataFrame()
+
+        # 过滤出 '涨跌幅' 大于 ratio 的行
+        filtered_data = data[data["涨跌幅"] > ratio]
+
+        return filtered_data
+    except Exception as e:
+        print(f"过滤数据时发生错误: {e}")
+        return data
+
+
+def today_liangbi_more_than_x(data, ratio):
+    try:
+        if "量比" not in data.columns:
+            print("数据列中没有找到 '量比' 列，无法进行过滤。")
+            return data
+
+        # 过滤出 '量比' 大于 ratio 的行
+        filtered_data = data[data["量比"] > ratio]
+
+        return filtered_data
+    except Exception as e:
+        print(f"过滤数据时发生错误: {e}")
+        return data
+
+
+def today_amplitude_range(data, low, high):
+    try:
+        if "涨跌幅" not in data.columns:
+            print("数据列中没有找到 '涨跌幅' 列，无法进行过滤。")
+            return pd.DataFrame()
+
+        # 过滤出 '涨跌幅' 大于low，小于high 的行
+        filtered_data = data[data["涨跌幅"] > low]
+        filtered_data = filtered_data[filtered_data["涨跌幅"] < high]
+
+        return filtered_data
+    except Exception as e:
+        print(f"过滤数据时发生错误: {e}")
+        return data
+
+
+def get_stock_minute_data(stock_code, last_n_rows=250):
+    try:
+        # 获取分时数据
+        min_data = ak.stock_zh_a_minute(symbol=stock_code, period='1')
+        # 取最后 last_n_rows 行
+        last_minute_data = min_data.tail(last_n_rows)
+        return last_minute_data
+    except Exception as e:
+        print(f"获取股票 {stock_code} 分时数据时发生错误: {e}")
+        return pd.DataFrame()
+
+
+def now7open7yesterday(data):
+    try:
+        if (
+                ("最新价" not in data.columns)
+                or ("今开" not in data.columns)
+                or ("昨收" not in data.columns)
+        ):
+            print("数据列中没有找到 ['最新价','今开','昨收'] 列，无法进行过滤。")
+            return pd.DataFrame()
+        filtered_data = data[data["最新价"] >= data["今开"]]
+        filtered_data = filtered_data[filtered_data["今开"] >= filtered_data["昨收"]]
+        return filtered_data
+    except Exception as e:
+        print(f"过滤数据时发生错误: {e}")
+        return data
+
+
+def draw_price(prices, stock_code="SECRET"):
+    # 绘制收盘价折线图
+    plt.figure(figsize=(12, 6))
+    plt.plot(prices, label='Close Price', color='b')
+    plt.title(f'Last 250 Minutes Close Prices for {stock_code}')
+    plt.xlabel('Time')
+    plt.ylabel('Close Price')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+
+def draw_price_details(open, high, low, close, stock_code="SECRET"):
+    res = []
+    for i in range(len(open)):
+        o = open[i]
+        h = high[i]
+        l = low[i]
+        c = close[i]
+        res.append(o)
+        res.append(h)
+        res.append(l)
+        res.append(c)
+    draw_price(res, stock_code)
+
+
+def draw_candlestick_chart(data, stock_code="SECRET"):
+    # 确保数据列名正确
+    data.columns = ['day', 'open', 'high', 'low', 'close', 'volume']
+    # 将时间列转换为datetime类型
+    data['day'] = pd.to_datetime(data['day'])
+    # 设置时间列为索引
+    data.set_index('day', inplace=True)
+
+    # 绘制K线图
+    mpf.plot(data, type='candle', style='yahoo', title=f'Last 250 Minutes Candlestick Chart for {stock_code}',
+             ylabel='Price', ylabel_lower='Volume', volume=True, figratio=(12, 6))
+
+# TODO
 # check_stock_history_limit_up_date()
 
 # get_last_n_trade_date(365)

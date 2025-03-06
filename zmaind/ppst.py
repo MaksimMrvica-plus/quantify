@@ -1,15 +1,17 @@
+import time
+
 import akshare as ak
 import pandas as pd
 import matplotlib.pyplot as plt
 import mplfinance as mpf
 
+import st_time
+import stock_tools
+
 
 def get_a_share_main_board() -> pd.DataFrame:
     try:
-        sh_info = ak.stock_sh_a_spot_em()
-        sz_info = ak.stock_zh_a_spot_em()
-        # 合并两个数据集
-        merged_data = pd.concat([sh_info, sz_info], ignore_index=True)
+        merged_data = ak.stock_zh_a_spot_em()
 
         # 筛选
         main_board_stocks = merged_data[
@@ -214,39 +216,72 @@ if __name__ == "__main__":
     # print("停: ", len(limitup))
     # #print(limitup)
     # limitup.to_excel("limitup.xlsx", index=False)
-    limitup = pd.read_excel("limitup.xlsx", dtype={"代码": str})
-    # 3 浮动低
-    low_today = today_rate_less_x(limitup, 7.5)
-    print("当天低位: ", len(low_today))
-    low_today.to_excel("low_today.xlsx", index=False)
-    # 4 低值
-    low_today = pd.read_excel("low_today.xlsx", dtype={"代码": str})
-    price = 35
-    low_price_today = today_price_less_x(low_today, price)
-    print(f"当天值低于 {price}:  {len(low_price_today)}")
-    low_price_today.to_excel("low_price_today.xlsx", index=False)
-    # 5 浮动
-    low_price_today = pd.read_excel("low_price_today.xlsx", dtype={"代码": str})
-    amplow = 1.5
-    amphigh = 5
-    low_amplitude_today = today_amplitude_range(low_price_today, amplow, amphigh)
-    print(f"当天浮动{amplow} ~ {amphigh}:  {len(low_amplitude_today)}")
-    low_amplitude_today.to_excel("low_amplitude_today.xlsx",index=False)
-    # 6 当前>开>收
-    low_amplitude_today = pd.read_excel("low_amplitude_today.xlsx", dtype={"代码": str})
-    now_open_yest = now7open7yesterday(low_amplitude_today)
-    print(f"当前>开>收:  {len(now_open_yest)}")
-    now_open_yest.to_excel("now_open_yest.xlsx", index=False)
-    # 7 liangbi
-    now_open_yest = pd.read_excel("now_open_yest.xlsx", dtype={"代码": str})
-    lb_val = 1.5
-    liangbi = today_liangbi_more_than_x(now_open_yest, lb_val)
-    print(f"量比>{lb_val}:  {len(liangbi)}")
-    liangbi.to_excel("liangbi.xlsx", index=False)
+    # limitup = pd.read_excel("limitup.xlsx", dtype={"代码": str})
+    # # 3 浮动低
+    # low_today = today_rate_less_x(limitup, 7.5)
+    # print("当天低位: ", len(low_today))
+    # low_today.to_excel("low_today.xlsx", index=False)
+    # # 4 低值
+    # low_today = pd.read_excel("low_today.xlsx", dtype={"代码": str})
+    # price = 35
+    # low_price_today = today_price_less_x(low_today, price)
+    # print(f"当天值低于 {price}:  {len(low_price_today)}")
+    # low_price_today.to_excel("low_price_today.xlsx", index=False)
+    # # 5 浮动
+    # low_price_today = pd.read_excel("low_price_today.xlsx", dtype={"代码": str})
+    # amplow = 1.5
+    # amphigh = 5
+    # low_amplitude_today = today_amplitude_range(low_price_today, amplow, amphigh)
+    # print(f"当天浮动{amplow} ~ {amphigh}:  {len(low_amplitude_today)}")
+    # low_amplitude_today.to_excel("low_amplitude_today.xlsx",index=False)
+    # # 6 当前>开>收
+    # low_amplitude_today = pd.read_excel("low_amplitude_today.xlsx", dtype={"代码": str})
+    # now_open_yest = now7open7yesterday(low_amplitude_today)
+    # print(f"当前>开>收:  {len(now_open_yest)}")
+    # now_open_yest.to_excel("now_open_yest.xlsx", index=False)
+    # # 7 liangbi
+    # now_open_yest = pd.read_excel("now_open_yest.xlsx", dtype={"代码": str})
+    # lb_val = 1.5
+    # liangbi = today_liangbi_more_than_x(now_open_yest, lb_val)
+    # print(f"量比>{lb_val}:  {len(liangbi)}")
+    # liangbi.to_excel("liangbi.xlsx", index=False)
+    # # 8.1 time sharing
+    # liangbi = pd.read_excel("liangbi.xlsx", dtype={"代码": str})
+    # for stock_code, name in zip(liangbi["代码"], liangbi["名称"]):
+    #     print(f"正在处理 {stock_code} {name}")
+    #     ss = stock_tools.get_current_n_minutes_time_sharing(stock_code)
+    #     ssnp = ss.to_numpy()
+    #     # print(ssnp)
+    #     for i in range(len(ssnp)):
+    #         print(ssnp[i][0], ssnp[i][2])
+    #     # break
+    #     time.sleep(1)
+    # # 8.2 详情
+    liangbi = pd.read_excel("liangbi.xlsx", dtype={"代码": str})
+    # 提取代码列和名称列
+    liangbi_extracted = liangbi[["代码", "名称"]]
+    # 创建一个新的数据框
+    new_liangbi = pd.DataFrame(columns=["代码", "名称"])
+    # 将提取的数据添加到新数据框中
+    new_liangbi = pd.concat([new_liangbi, liangbi_extracted], ignore_index=True)
+    # 插入新的数据行
+    new_row = pd.DataFrame({"代码": ["600839"], "名称": ["四川长虹"]})
+    new_liangbi = pd.concat([new_liangbi, new_row], ignore_index=True)
+    liangbi = new_liangbi
 
-    print(liangbi)
+    liangbi_codes = liangbi["代码"].unique()
+    day_details = ak.stock_zh_a_spot_em()
+    filtered_day_details = day_details[day_details["代码"].isin(liangbi_codes)]
+    print(filtered_day_details)
+    for index, row in filtered_day_details.iterrows():
+        name = row["名称"]
+        latest_price = row["最新价"]
+        change_rate = row["涨跌幅"]
+        open_price = latest_price/(1+change_rate/100)
+        sign = '↑' if change_rate > 0 else '↓'
+        print(f"{name[:4]:>5} {open_price:>6.2f} -> {latest_price:<6.2f} {change_rate:>6}% {sign}")
 
-    # 分时
+    # 完整分时内分时
     # stock_code = "sz000001"
     # last_minute_data = get_stock_minute_data(stock_code, 1700)
     # print(last_minute_data)
@@ -277,3 +312,5 @@ if __name__ == "__main__":
 当前>开>收:  71
 量比>1.5:  10
 """
+
+
