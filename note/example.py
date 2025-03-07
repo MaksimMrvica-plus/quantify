@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 import pandas.core.frame
 from pandas import DataFrame
-
+import mypack.stock_tools as stl
 
 
 # DataFrame 数据使用
@@ -76,8 +76,8 @@ stock_zh_a_hist_df = ak.stock_zh_a_hist(symbol="603050", period="daily",
                                         start_date="20240601", end_date='20240817', adjust="qfq")
 print(stock_zh_a_hist_df)
 print(type(stock_zh_a_hist_df))
-dataframe2excel('a.xlsx', stock_zh_a_hist_df)
-res = dataframe2list(stock_zh_a_hist_df)
+stl.dataframe2excel('a.xlsx', stock_zh_a_hist_df)
+res = stl.dataframe2list(stock_zh_a_hist_df)
 for x in res:
     print(x[0], x[9])
 # # 分时

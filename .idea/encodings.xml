@@ -3,6 +3,10 @@
   <component name="Encoding">
     <file url="file://$PROJECT_DIR$/A_stock_code_name.json" charset="GBK" />
     <file url="file://$PROJECT_DIR$/all_stock_code_name.json" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/main_code2name3070.json" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/main_code2name_3070.json" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/main_name2code3070.json" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/main_name2code_3070.json" charset="GBK" />
     <file url="file://$PROJECT_DIR$/strategy1/20250306/debug.log" charset="GBK" />
   </component>
 </project>

@@ -17,6 +17,7 @@
 
 
 
+strategy1
 策略✅❌⭕：
 
 ✅不做 ST，创业板，科创板，北交所。
@@ -29,6 +30,33 @@
 ⭕多个资金拉升，股票涨幅仍在（5%）以下，过高风险太高且收益降低，值博比低。
 
 
+
+strategy2
+yesterday limitup
+today not
+tomorrow ？
+prepare day:
+1. get_yest_limit_today_no
+2.
+
+strategy3
+# long 空 long
+
+
+
+
+
+
+strategy4
+# TOD
+# check_stock_history_limit_up_date()
+
+# get_last_n_trade_date(365)
+
+
+# TOD : 1.获取某一天的所有股票数据，然后保存到文件中。
+# DF_concat_oneday_stocks_info('20240101', ['000001', '000002', '000003'])
+# TOD : 2.然后根据当天涨停股票收集的历史涨停日期，获取该涨停日期下其他涨停股票代码。
 
 
 

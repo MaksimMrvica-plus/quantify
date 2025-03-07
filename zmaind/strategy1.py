@@ -9,7 +9,7 @@ import os
 import logging
 
 import st_time
-import stock_tools as stl
+import mypack.stock_tools as stl
 
 STRATEGY_NAME = os.path.basename(__file__).split('.')[0]
 DATESTR = st_time.datetime_to_str_day(datetime.datetime.now())
@@ -35,49 +35,49 @@ logging.getLogger().addHandler(console_handler)
 
 # 示例调用
 if __name__ == "__main__":
-    # logging.info(f"当前策略: {STRATEGY_NAME}, 日志保存路径: {LOG_PATH}")
-    #
-    # # 1 主筛
-    # main_board_stocks = stl.get_a_share_main_board()
-    # logging.info(f"主筛结果: {len(main_board_stocks)}")
-    # main_board_stocks.to_excel(os.path.join(SAVE_ROOT_PATH, "main_board_stocks.xlsx"), index=False)
-    # # 2 涨停（主要耗时）
-    # main_board_stocks = pd.read_excel(os.path.join(SAVE_ROOT_PATH, "main_board_stocks.xlsx"), dtype={"代码": str})
-    # limitup = stl.has_limit_up_in_last_month(main_board_stocks)
-    # logging.info(f"涨停:  {len(limitup)}")
-    # limitup.to_excel(os.path.join(SAVE_ROOT_PATH, "limitup.xlsx"), index=False)
-    # limitup = pd.read_excel(os.path.join(SAVE_ROOT_PATH, "limitup.xlsx"), dtype={"代码": str})
-    # # 3 股价低于35
-    # limitup = pd.read_excel(os.path.join(SAVE_ROOT_PATH, "limitup.xlsx"), dtype={"代码": str})
-    # price = 35
-    # low_price = stl.today_price_less_x(limitup, price)
-    # logging.info(f"当天值低于 {price}:  {len(low_price)}")
-    # low_price.to_excel(os.path.join(SAVE_ROOT_PATH, "low_price.xlsx"), index=False)
-    # # 4 市值低于300亿
-    # low_price = pd.read_excel(os.path.join(SAVE_ROOT_PATH, "low_price.xlsx"), dtype={"代码": str})
-    # low_market_value = stl.filter_market_value(low_price, max_market_value=300)
-    # logging.info(f"市值低于300亿:  {len(low_market_value)}")
-    # low_market_value.to_excel(os.path.join(SAVE_ROOT_PATH, "low_market_value.xlsx"))
-    # # 5 涨跌幅  0-7.5
-    # low_market_value = pd.read_excel(os.path.join(SAVE_ROOT_PATH, "low_market_value.xlsx"), dtype={"代码": str})
-    # amplow = 0
-    # amphigh = 7.5
-    # low_amplitude = stl.today_amplitude_range(low_market_value, amplow, amphigh)
-    # logging.info(f"当天浮动{amplow} ~ {amphigh}:  {len(low_amplitude)}")
-    # low_amplitude.to_excel(os.path.join(SAVE_ROOT_PATH, "low_amplitude.xlsx"), index=False)
-    # # 6 当前>开>收
-    # low_amplitude = pd.read_excel(os.path.join(SAVE_ROOT_PATH, "low_amplitude.xlsx"), dtype={"代码": str})
-    # now_open_yest = stl.now7open7yesterday(low_amplitude)
-    # logging.info(f"当前>开>收:  {len(now_open_yest)}")
-    # now_open_yest.to_excel(os.path.join(SAVE_ROOT_PATH, "now_open_yest.xlsx"), index=False)
-    # # 7 liangbi
-    # now_open_yest = pd.read_excel(os.path.join(SAVE_ROOT_PATH, "now_open_yest.xlsx"), dtype={"代码": str})
-    # lb_val = 1.5
-    # liangbi = stl.today_liangbi_more_than_x(now_open_yest, lb_val)
-    # logging.info(f"量比>{lb_val}:  {len(liangbi)}")
-    # liangbi.to_excel(os.path.join(SAVE_ROOT_PATH, "liangbi.xlsx"), index=False)
+    logging.info(f"当前策略: {STRATEGY_NAME}, 日志保存路径: {LOG_PATH}")
+
+    # 1 主筛
+    main_board_stocks = stl.get_a_share_main_board()
+    logging.info(f"主筛结果: {len(main_board_stocks)}")
+    main_board_stocks.to_excel(os.path.join(SAVE_ROOT_PATH, "main_board_stocks.xlsx"), index=False)
+    # 2 涨停（主要耗时）
+    main_board_stocks = pd.read_excel(os.path.join(SAVE_ROOT_PATH, "main_board_stocks.xlsx"), dtype={"代码": str})
+    limitup = stl.has_limit_up_in_last_month(main_board_stocks)
+    logging.info(f"涨停:  {len(limitup)}")
+    limitup.to_excel(os.path.join(SAVE_ROOT_PATH, "limitup.xlsx"), index=False)
+    limitup = pd.read_excel(os.path.join(SAVE_ROOT_PATH, "limitup.xlsx"), dtype={"代码": str})
+    # 3 股价低于35
+    limitup = pd.read_excel(os.path.join(SAVE_ROOT_PATH, "limitup.xlsx"), dtype={"代码": str})
+    price = 35
+    low_price = stl.today_price_less_x(limitup, price)
+    logging.info(f"当天值低于 {price}:  {len(low_price)}")
+    low_price.to_excel(os.path.join(SAVE_ROOT_PATH, "low_price.xlsx"), index=False)
+    # 4 市值低于300亿
+    low_price = pd.read_excel(os.path.join(SAVE_ROOT_PATH, "low_price.xlsx"), dtype={"代码": str})
+    low_market_value = stl.filter_market_value(low_price, max_market_value=300)
+    logging.info(f"市值低于300亿:  {len(low_market_value)}")
+    low_market_value.to_excel(os.path.join(SAVE_ROOT_PATH, "low_market_value.xlsx"))
+    # 5 涨跌幅  0-7.5
+    low_market_value = pd.read_excel(os.path.join(SAVE_ROOT_PATH, "low_market_value.xlsx"), dtype={"代码": str})
+    amplow = 0
+    amphigh = 7.5
+    low_amplitude = stl.today_amplitude_range(low_market_value, amplow, amphigh)
+    logging.info(f"当天浮动{amplow} ~ {amphigh}:  {len(low_amplitude)}")
+    low_amplitude.to_excel(os.path.join(SAVE_ROOT_PATH, "low_amplitude.xlsx"), index=False)
+    # 6 当前>开>收
+    low_amplitude = pd.read_excel(os.path.join(SAVE_ROOT_PATH, "low_amplitude.xlsx"), dtype={"代码": str})
+    now_open_yest = stl.now7open7yesterday(low_amplitude)
+    logging.info(f"当前>开>收:  {len(now_open_yest)}")
+    now_open_yest.to_excel(os.path.join(SAVE_ROOT_PATH, "now_open_yest.xlsx"), index=False)
+    # 7 liangbi
+    now_open_yest = pd.read_excel(os.path.join(SAVE_ROOT_PATH, "now_open_yest.xlsx"), dtype={"代码": str})
+    lb_val = 1.5
+    liangbi = stl.today_liangbi_more_than_x(now_open_yest, lb_val)
+    logging.info(f"量比>{lb_val}:  {len(liangbi)}")
+    liangbi.to_excel(os.path.join(SAVE_ROOT_PATH, "liangbi.xlsx"), index=False)
     # # 8 customer
-    liangbi = pd.read_excel(os.path.join(SAVE_ROOT_PATH, "liangbi.xlsx"), dtype={"代码": str})
+    # liangbi = pd.read_excel(os.path.join(SAVE_ROOT_PATH, "liangbi.xlsx"), dtype={"代码": str})
 
 """
 当天低位:  1095

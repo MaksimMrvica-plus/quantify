@@ -1,7 +1,7 @@
-import stock_tools
-from stock_tools import *
+import mypack.stock_tools as stl
+from mypack.stock_tools import *
 
-DATA_PATH = stock_tools.DATA_PATH
+DATA_PATH = DATA_PATH
 
 
 

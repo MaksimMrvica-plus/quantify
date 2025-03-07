@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 import mplfinance as mpf
 
 import st_time
-import stock_tools
+from define import *
+import mypack.stock_tools as stl
 
 
 def get_a_share_main_board() -> pd.DataFrame:
@@ -274,9 +275,9 @@ if __name__ == "__main__":
     filtered_day_details = day_details[day_details["代码"].isin(liangbi_codes)]
     print(filtered_day_details)
     for index, row in filtered_day_details.iterrows():
-        name = row["名称"]
-        latest_price = row["最新价"]
-        change_rate = row["涨跌幅"]
+        name = row[MC]
+        latest_price = row[ZXJ]
+        change_rate = row[ZDF]
         open_price = latest_price/(1+change_rate/100)
         sign = '↑' if change_rate > 0 else '↓'
         print(f"{name[:4]:>5} {open_price:>6.2f} -> {latest_price:<6.2f} {change_rate:>6}% {sign}")

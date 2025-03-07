@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import concurrent.futures
+import datetime
 import threading
 import time
 import os
@@ -8,7 +9,10 @@ import pandas.core.frame
 import mplfinance as mpf
 
 from st_time import *
+from define import *
 
+FILE_PATH = os.path.dirname(__file__)  # "...../quantify/mypack"
+ROOT_PATH = FILE_PATH.split('/')[:-1]  # "...../quantify"
 DATA_PATH = 'stock_data'
 HISTORY_DATA_PATH = 'history_data'
 A_STOCK_CODE_NAME_DICT_PATH = 'A_stock_code_name.json'
@@ -194,6 +198,22 @@ def DICT_df_code_to_dict(df: pandas.core.frame.DataFrame) -> dict:
         _v = getattr(row, '名称')
         _dict[_k] = _v
     return _dict
+
+
+def get_codes():
+    pt = pd.read_excel(r"D:\my_projects\quantify\strategy1\20250306\main_board_stocks.xlsx", dtype={"代码": str})
+    codes = pt['代码'].to_list()
+    names = pt['名称'].to_list()
+    wp = r'D:\my_projects\quantify\main_code2name.json'
+    wp2 = r'D:\my_projects\quantify\main_name2code.json'
+    dc = {}
+    dc2 = {}
+    for i in range(len(codes)):
+        dc[codes[i]] = names[i]
+        dc2[names[i]] = codes[i]
+    print(len(dc))
+    save_dict_to_json(wp, dc)
+    save_dict_to_json(wp2, dc2)
 
 
 # 判断一天是否为交易日
@@ -441,7 +461,7 @@ def has_limit_up_in_last_month(pd):
     pre_str = datetime_to_str_day(pre_month)
     print(f"查询日期在 {pre_str} 到 {now_str} 之间的涨停情况")
     for code in codes:
-        print(code, "\t", i, "/", n)
+        print('\r', code, "\t", i, "/", n, end="")
         i += 1
         try:
             stock_data = ak.stock_zh_a_hist(symbol=code, period="daily", start_date=pre_str, end_date=now_str)
@@ -612,16 +632,22 @@ def draw_candlestick_chart(data, stock_code="SECRET"):
     # 设置时间列为索引
     data.set_index('day', inplace=True)
 
-    # 绘制K线图
+    # 绘制图
     mpf.plot(data, type='candle', style='yahoo', title=f'Last 250 Minutes Candlestick Chart for {stock_code}',
              ylabel='Price', ylabel_lower='Volume', volume=True, figratio=(12, 6))
 
-# TODO
-# check_stock_history_limit_up_date()
 
-# get_last_n_trade_date(365)
-
-
-# TODO : 1.获取某一天的所有股票数据，然后保存到文件中。
-# DF_concat_oneday_stocks_info('20240101', ['000001', '000002', '000003'])
-# TODO : 2.然后根据当天涨停股票收集的历史涨停日期，获取该涨停日期下其他涨停股票代码。
+def get_yest_limit_today_no(yeststr: str = "20250305", todaystr: str = "20250306"):
+    cj = read_json_to_dict(os.path.join(FILE_PATH, 'global_data', 'main_code2name.json'))
+    code_list = list(cj.keys())
+    yest_lmtup = DF_concat_oneday_stocks_info(yeststr, code_list)
+    # print(yest_lmtup)
+    today_no = DF_concat_oneday_stocks_info(todaystr, code_list)
+    # print(today_no)
+    yest_lmtup = yest_lmtup[yest_lmtup[ZDF] > 9.8]
+    today_no = today_no[today_no[ZDF] < 9.9]
+    merge = pd.merge(yest_lmtup, today_no, on=GPDM, how='inner')
+    # print(merge)
+    # print(len(merge))
+    # merge.to_excel(f'lmtup_no_{todaystr}.xlsx', index=False)
+    return merge
