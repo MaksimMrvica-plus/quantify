@@ -12,7 +12,7 @@ from st_time import *
 from define import *
 
 FILE_PATH = os.path.dirname(__file__)  # "...../quantify/mypack"
-ROOT_PATH = FILE_PATH.split('/')[:-1]  # "...../quantify"
+ROOT_PATH = os.path.join(FILE_PATH, '..')  # "...../quantify"
 DATA_PATH = 'stock_data'
 HISTORY_DATA_PATH = 'history_data'
 A_STOCK_CODE_NAME_DICT_PATH = 'A_stock_code_name.json'
@@ -638,14 +638,14 @@ def draw_candlestick_chart(data, stock_code="SECRET"):
 
 
 def get_yest_limit_today_no(yeststr: str = "20250305", todaystr: str = "20250306"):
-    cj = read_json_to_dict(os.path.join(FILE_PATH, 'global_data', 'main_code2name.json'))
+    cj = read_json_to_dict(os.path.join(ROOT_PATH, 'global_data', 'main_code2name.json'))
     code_list = list(cj.keys())
     yest_lmtup = DF_concat_oneday_stocks_info(yeststr, code_list)
     # print(yest_lmtup)
     today_no = DF_concat_oneday_stocks_info(todaystr, code_list)
     # print(today_no)
     yest_lmtup = yest_lmtup[yest_lmtup[ZDF] > 9.8]
-    today_no = today_no[today_no[ZDF] < 9.9]
+    today_no = today_no[today_no[ZDF] < 9.8]
     merge = pd.merge(yest_lmtup, today_no, on=GPDM, how='inner')
     # print(merge)
     # print(len(merge))

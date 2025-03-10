@@ -36,7 +36,6 @@ logging.getLogger().addHandler(console_handler)
 # 示例调用
 if __name__ == "__main__":
     logging.info(f"当前策略: {STRATEGY_NAME}, 日志保存路径: {LOG_PATH}")
-
     # 1 主筛
     main_board_stocks = stl.get_a_share_main_board()
     logging.info(f"主筛结果: {len(main_board_stocks)}")
