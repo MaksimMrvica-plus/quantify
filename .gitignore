@@ -1,4 +1,4 @@
-history_data
-stock_data
-.idea
-__pycache__
+history_data/
+stock_data/
+.idea/
+__pycache__/
