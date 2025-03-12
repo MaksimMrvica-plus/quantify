@@ -35,6 +35,9 @@ def getstockhistory():
 
 
 if __name__ == '__main__':
+    t = ak.stock_zh_a_hist(symbol="000004", period="daily", start_date="20250303", end_date="20250307")
+    print(t)
+    exit()
     getstockhistory()
     exit()
     # 指定目录路径
