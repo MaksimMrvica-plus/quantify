@@ -430,7 +430,8 @@ def get_current_n_minutes_time_sharing(stock_code="000001", n=0, period="1") -> 
 
 def get_a_share_main_board() -> pd.DataFrame:
     try:
-        merged_data = ak.stock_zh_a_spot_em()
+        # merged_data = ak.stock_zh_a_spot_em()
+        merged_data = pd.concat([ak.stock_sh_a_spot_em(), ak.stock_sz_a_spot_em()])
         # 去掉无数据股票
         merged_data = merged_data.dropna(subset=["最新价"])
         # 筛选
