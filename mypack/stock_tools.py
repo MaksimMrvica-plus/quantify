@@ -172,8 +172,7 @@ def DF_concat_oneday_stocks_info(date: str, code_list: list) -> pandas.core.fram
 
     for code in code_list:
         idx += 1
-        print(f"\r正在收集 日期：[{date}]  股票：[{code}]   进度：{idx}/{n}", end="")
-        # print(f"正在收集 日期：[{date}]  股票：[{code}]   进度：{idx}/{n}")
+        print(f"\r正在收集 日期：[{date}]  [{code}]   进度：{idx}/{n}", end="")
         _df = ak.stock_zh_a_hist(symbol=code, period="daily", start_date=date, end_date=date)
         if _df.empty:
             continue

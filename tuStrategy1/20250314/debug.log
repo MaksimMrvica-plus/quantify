@@ -1,0 +1,10 @@
+2025-03-14 16:57:45,475 - INFO - filter_low == [-5] up:62, res:8	save to : D:\my_projects\quantify\zmaind/../tuStrategy1/20250314\filter_low_f5.xlsx
+2025-03-14 16:57:45,492 - INFO - filter_low == [-3] up:62, res:11	save to : D:\my_projects\quantify\zmaind/../tuStrategy1/20250314\filter_low_f3.xlsx
+2025-03-14 16:57:45,511 - INFO - filter_low == [0] up:62, res:18	save to : D:\my_projects\quantify\zmaind/../tuStrategy1/20250314\filter_low_0.xlsx
+2025-03-14 16:57:45,530 - INFO - filter_low == [5] up:62, res:24	save to : D:\my_projects\quantify\zmaind/../tuStrategy1/20250314\filter_low_z5.xlsx
+2025-03-14 16:57:45,549 - INFO - filter_low == [9.85] up:62, res:25	save to : D:\my_projects\quantify\zmaind/../tuStrategy1/20250314\filter_low_z985.xlsx
+2025-03-14 16:57:45,569 - INFO - filter_low == [-66] up:62, res:8	save to : D:\my_projects\quantify\zmaind/../tuStrategy1/20250314\filter_low_[-10~-5].xlsx
+2025-03-14 16:57:45,589 - INFO - filter_low == [-5] up:62, res:3	save to : D:\my_projects\quantify\zmaind/../tuStrategy1/20250314\filter_low_[-5~-3].xlsx
+2025-03-14 16:57:45,607 - INFO - filter_low == [-3] up:62, res:7	save to : D:\my_projects\quantify\zmaind/../tuStrategy1/20250314\filter_low_[-3~0].xlsx
+2025-03-14 16:57:45,625 - INFO - filter_low == [0] up:62, res:6	save to : D:\my_projects\quantify\zmaind/../tuStrategy1/20250314\filter_low_[0~5].xlsx
+2025-03-14 16:57:45,643 - INFO - filter_low == [5] up:62, res:12	save to : D:\my_projects\quantify\zmaind/../tuStrategy1/20250314\filter_low_[5~10].xlsx

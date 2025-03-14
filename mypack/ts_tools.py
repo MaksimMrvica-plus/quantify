@@ -15,6 +15,8 @@ import mplfinance as mpf
 from st_time import *
 from define import *
 
+ts.set_token('c481515077951633f62f40f93473cee19825a2dc91cf7343b4b37a29')
+
 FILE_PATH = os.path.dirname(__file__)  # "...../quantify/mypack"
 ROOT_PATH = os.path.join(FILE_PATH, '..')  # "...../quantify"
 DATA_PATH = 'stock_data'
@@ -28,6 +30,18 @@ def authorize():
 
 pro = authorize()  # global
 
+
+# 转换成ts格式code
+def format_code(_code: str):
+    if len(_code) == 9:
+        return _code
+    if len(_code) == 6:
+        if _code.startswith('6'):
+            return f"{_code}.SH"
+        elif _code.startswith('0'):
+            return f"{_code}.SZ"
+    print("格式错误，转换失败")
+    return _code
 
 def init_used_codes():
     datestr = datetime_to_str_day(now_datetime())
@@ -67,29 +81,13 @@ def get_df_oneday_amplitude(_date="20250312", _ampl: float = 5.0, _type="more") 
     if _type == "more":
         df = df[df['pct_chg'] >= _ampl]
     elif _type == "less":
-        df = df[df['pct_chg'] <= -_ampl]
+        df = df[df['pct_chg'] <= _ampl]
     return df
 
 
-if __name__ == '__main__':
-    # init_used_codes()
-    dc = json.loads(open(os.path.join(ROOT_PATH, f"global_data/ts_codes.json"), 'r').read())
-    # c = count_limit_up_times('600728.SH', '20250306', '20250307')
-    # print(c)
-    lmtup = get_df_oneday_amplitude("20250311", 9.8, "more")
-    nlmtup = get_df_oneday_amplitude("20250312", 0, "less")
-    print(f"up:{len(lmtup)}, down:{len(nlmtup)}")
-    res = nlmtup[nlmtup['ts_code'].isin(lmtup['ts_code'])]
-    res = res[res['ts_code'].isin(dc.keys())]
-    print(f"res:{len(res)}")
-    res.to_excel('tmp.xlsx', index=False)
-
-    nlmtup = get_df_oneday_amplitude("20250312", 5, "less")
-    print(f"up:{len(lmtup)}, down:{len(nlmtup)}")
-    res = nlmtup[nlmtup['ts_code'].isin(lmtup['ts_code'])]
-    res = res[res['ts_code'].isin(dc.keys())]
-    print(f"res:{len(res)}")
-    res.to_excel('tmp2.xlsx', index=False)
+def get_stocks_limit_up_oneday(_date="20250312") -> pd.DataFrame:
+    df = pro.query("daily", trade_date=_date)
+    df = df[df['pct_chg'] > 9.8]
+    return df
 
 
-    pass

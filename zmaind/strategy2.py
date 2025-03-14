@@ -53,7 +53,7 @@ if __name__ == "__main__":
 
     # # 1 昨停今不
     tdstr = st_time.datetime_to_str_day(datetime.datetime.now())
-    yestr = st_time.datetime_to_str_day(datetime.datetime.now() - datetime.timedelta(days=3))
+    yestr = st_time.datetime_to_str_day(datetime.datetime.now() - datetime.timedelta(days=1))
     yest_lmtup_today_no = stl.get_yest_limit_today_no(yestr, tdstr)
     print(yest_lmtup_today_no)
     yest_lmtup_today_no.to_excel(os.path.join(SAVE_ROOT_PATH, "yest_lmtup_today_no.xlsx"), index=False)
@@ -65,7 +65,7 @@ if __name__ == "__main__":
     # # 3 筛选出main_board_stocks中代码，与 yest_lmtup_today_no代码共有的 内容
     main_board_stocks = stl.get_a_share_main_board()
     main_yltn_stocks = main_board_stocks[main_board_stocks[DM].isin(yest_lmtup_today_no[GPDM])]
-    logging.info(f"main_board_stocks:  {len(main_yltn_stocks)}")
+    logging.info(f"main_yltn_stocks:  {len(main_yltn_stocks)}")
     main_yltn_stocks.to_excel(os.path.join(SAVE_ROOT_PATH, "main_yltn_stocks.xlsx"), index=False)
     # 3 股价低于35
     yltn = pd.read_excel(os.path.join(SAVE_ROOT_PATH, "main_yltn_stocks.xlsx"), dtype={"代码": str})

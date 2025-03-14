@@ -1,3 +1,5 @@
+import os
+
 DM = "代码"
 GPDM = "股票代码"
 MC = "名称"
@@ -19,3 +21,10 @@ ZS = "涨速"
 ZD5 = "5分钟涨跌"
 ZDF60 = "60日涨跌幅"
 NCZJZF = "年初至今涨幅"
+
+
+FILE_PATH = os.path.dirname(__file__)  # "...../quantify/mypack"
+ROOT_PATH = os.path.join(FILE_PATH, '..')  # "...../quantify"
+DATA_PATH = 'stock_data'
+HISTORY_DATA_PATH = 'history_data'
+A_STOCK_CODE_NAME_DICT_PATH = 'A_stock_code_name.json'
