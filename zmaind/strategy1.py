@@ -9,7 +9,9 @@ import os
 import logging
 
 import st_time
+import mypack.define as dfn
 import mypack.stock_tools as stl
+import mypack.ts_tools as tstl
 
 STRATEGY_NAME = os.path.basename(__file__).split('.')[0]
 DATESTR = st_time.datetime_to_str_day(datetime.datetime.now())
@@ -32,7 +34,6 @@ console_handler.setLevel(logging.INFO)
 console_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
 logging.getLogger().addHandler(console_handler)
 
-
 # 示例调用
 if __name__ == "__main__":
     logging.info(f"当前策略: {STRATEGY_NAME}, 日志保存路径: {LOG_PATH}")
@@ -52,15 +53,15 @@ if __name__ == "__main__":
     low_price = stl.today_price_less_x(limitup, price)
     logging.info(f"当天值低于 {price}:  {len(low_price)}")
     low_price.to_excel(os.path.join(SAVE_ROOT_PATH, "low_price.xlsx"), index=False)
-    # 4 市值低于300亿
+    # 4 市值低于150亿
     low_price = pd.read_excel(os.path.join(SAVE_ROOT_PATH, "low_price.xlsx"), dtype={"代码": str})
-    low_market_value = stl.filter_market_value(low_price, max_market_value=300)
-    logging.info(f"市值低于300亿:  {len(low_market_value)}")
+    low_market_value = stl.filter_market_value(low_price, max_market_value=150)
+    logging.info(f"市值低于150亿:  {len(low_market_value)}")
     low_market_value.to_excel(os.path.join(SAVE_ROOT_PATH, "low_market_value.xlsx"))
-    # 5 涨跌幅  0-7.5
+    # 5 涨跌幅  0-7.5(感觉还是2.5-5成功率高一点)
     low_market_value = pd.read_excel(os.path.join(SAVE_ROOT_PATH, "low_market_value.xlsx"), dtype={"代码": str})
-    amplow = 0
-    amphigh = 7.5
+    amplow = 1.5
+    amphigh = 5.2
     low_amplitude = stl.today_amplitude_range(low_market_value, amplow, amphigh)
     logging.info(f"当天浮动{amplow} ~ {amphigh}:  {len(low_amplitude)}")
     low_amplitude.to_excel(os.path.join(SAVE_ROOT_PATH, "low_amplitude.xlsx"), index=False)
@@ -69,12 +70,52 @@ if __name__ == "__main__":
     now_open_yest = stl.now7open7yesterday(low_amplitude)
     logging.info(f"当前>开>收:  {len(now_open_yest)}")
     now_open_yest.to_excel(os.path.join(SAVE_ROOT_PATH, "now_open_yest.xlsx"), index=False)
-    # 7 liangbi
+    # # 7 liangbi (已弃用)
+    # now_open_yest = pd.read_excel(os.path.join(SAVE_ROOT_PATH, "now_open_yest.xlsx"), dtype={"代码": str})
+    # lb_val = 1.5
+    # liangbi = stl.today_liangbi_more_than_x(now_open_yest, lb_val)
+    # logging.info(f"量比>{lb_val}:  {len(liangbi)}")
+    # liangbi.to_excel(os.path.join(SAVE_ROOT_PATH, "liangbi.xlsx"), index=False)
+    # 7 成交量高于昨天
     now_open_yest = pd.read_excel(os.path.join(SAVE_ROOT_PATH, "now_open_yest.xlsx"), dtype={"代码": str})
-    lb_val = 1.5
-    liangbi = stl.today_liangbi_more_than_x(now_open_yest, lb_val)
-    logging.info(f"量比>{lb_val}:  {len(liangbi)}")
-    liangbi.to_excel(os.path.join(SAVE_ROOT_PATH, "liangbi.xlsx"), index=False)
+    search_code_list = now_open_yest[dfn.DM].to_list()
+    # print(search_code_list)
+    trade_days = tstl.pre_n_days_trade_date(10)
+    # print(trade_days)
+    yesterday = ""
+    if trade_days[0] == DATESTR:
+        yesterday = trade_days[1]
+    else:
+        yesterday = trade_days[0]
+    # print(yesterday)
+    yesterday_info = tstl.get_oneday_stock_infos(search_code_list, yesterday)
+    # print(yesterday_info)
+
+    # 构建字典 yest_dict  {code : [vol , amount]}
+    yest_dict = {}
+    for index, row in yesterday_info.iterrows():
+        code = row['ts_code'][:6]  # 股票代码,去掉后缀
+        vol = row['vol']  # 成交量
+        amount = row['amount'] * 1000  # 成交额,原本单位是 （千元）
+        # print(f"代码：{code}, 成交量：{vol:.2f}, 成交额：{amount:.2f}")
+        yest_dict[code] = [vol, amount]
+    # 比对量能
+    more_codes = []
+    for index, row in now_open_yest.iterrows():
+        code = row[dfn.DM]
+        vol = row[dfn.CJL]
+        amount = row[dfn.CJE]
+        if vol >= yest_dict[code][0]:
+            more_codes.append(code)
+            print(f"✅代码：{code}, 今日成交量：{vol:.2f} —> 昨日成交量：{yest_dict[code][0]:.2f}"
+                  f"\t\t今日成交额：{amount:.2f} —> 昨日成交额：{yest_dict[code][1]:.2f} ")
+        else:
+            print(f"❌代码：{code}, 今日成交量：{vol:.2f} —> 昨日成交量：{yest_dict[code][0]:.2f}"
+                  f"\t\t今日成交额：{amount:.2f} —> 昨日成交额：{yest_dict[code][1]:.2f} ")
+    liangneng = now_open_yest[now_open_yest[dfn.DM].isin(more_codes)]
+    logging.info(f"量能>昨日:  {len(liangneng)}")
+    liangneng.to_excel(os.path.join(SAVE_ROOT_PATH, "liangneng.xlsx"), index=False)
+    # print(liangneng)
     # # 8 customer
     # liangbi = pd.read_excel(os.path.join(SAVE_ROOT_PATH, "liangbi.xlsx"), dtype={"代码": str})
 

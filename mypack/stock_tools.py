@@ -122,8 +122,8 @@ def get_last_n_trade_date(n: int) -> list:
     :return:    ['20230821', '20230822', '20230823']
     """
     _list = []
-    end = datetime.datetime.now().strftime("%Y%m%d")
-    start = (datetime.datetime.now() - datetime.timedelta(days=n)).strftime("%Y%m%d")
+    end = datetime.now().strftime("%Y%m%d")
+    start = (datetime.now() - timedelta(days=n)).strftime("%Y%m%d")
     _df = ak.stock_zh_a_hist(symbol='000001', period="daily", start_date=start, end_date=end)
     dates = [x.strftime("%Y%m%d") for x in list(_df['日期'])]
     return dates
@@ -266,7 +266,7 @@ def init_file_dir_history_day(path_name: str, start_day: str, end_day: str) -> b
             save_path = os.path.join(root_path, _date)
             if not os.path.exists(save_path):
                 os.makedirs(save_path)
-        _day = _day + datetime.timedelta(days=1)
+        _day = _day + timedelta(days=1)
     return True
 
 
@@ -279,14 +279,14 @@ def get_stock_history_data(path_name: str, code_list: list, pre_day=365) -> bool
     :param code_list:
     :return:
     """
-    e_date = datetime.datetime.now().strftime("%Y%m%d")
-    s_date = (datetime.datetime.now() - datetime.timedelta(days=pre_day)).strftime("%Y%m%d")
+    e_date = datetime.now().strftime("%Y%m%d")
+    s_date = (datetime.now() - timedelta(days=pre_day)).strftime("%Y%m%d")
     try:
         _end = len(code_list)
         idx = 0
         for code in code_list:
             idx += 1
-            save_path = os.path.join(path_name, code, 'history_' + str(pre_day) + '.xlsx')
+            save_path = os.path.join(path_name, f'{code}.xlsx')
             print("\r", end="")
             if os.path.exists(save_path):
                 print(f"{code} 已存在，跳过", end="")
@@ -311,8 +311,7 @@ def thread_for_GET_A_STOCK_HISTORY_DATA(path_name, code_list, s_date, e_date, up
             print(f"{str_date} 不是交易日，跳过")
             return True
 
-        _p = os.path.join(path_name, str_date)
-        save_path = os.path.join(_p, 'A_history.xlsx')
+        save_path = os.path.join(path_name, f'{str_date}.xlsx')
         if not update:  # 如果不更新旧数据，则使用已存在的内容。
             if os.path.exists(save_path):
                 print(f"{str_date} 数据已存在，跳过")
@@ -321,8 +320,7 @@ def thread_for_GET_A_STOCK_HISTORY_DATA(path_name, code_list, s_date, e_date, up
         print(f"正在处理 ： {str_date}/{str_end_date}")
         _df = DF_concat_oneday_stocks_info(str_date, code_list)
         # 确保目录存在，并写入文件
-
-        ensure_dir_exists(_p)
+        _df.to_excel(save_path, idx=False)
         dataframe2excel(save_path, _df, idx=False)
         return True
     except Exception as e:
@@ -340,8 +338,8 @@ def get_A_stock_history_data(path_name: str, code_list: list, pre_day=30, update
     :param update:  是否采取更新策略， True: 重新获取数据，覆盖更新旧内容
     :return:
     """
-    e_date = datetime.datetime.now()
-    s_date = datetime.datetime.now() - datetime.timedelta(days=pre_day + 1)
+    e_date = datetime.now()
+    s_date = datetime.now() - timedelta(days=pre_day + 1)
     # 单线程
     # _date = s_date
     # str_end_date = datetime_to_str_day(e_date)
@@ -379,7 +377,7 @@ def get_A_stock_history_data(path_name: str, code_list: list, pre_day=30, update
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
         # 提交任务到线程池
         while _date <= e_date:
-            _date = _date + datetime.timedelta(days=1)
+            _date = _date + timedelta(days=1)
             futures = {executor.submit(thread_for_GET_A_STOCK_HISTORY_DATA,
                                        path_name, code_list, _date, e_date, update)}
     return True

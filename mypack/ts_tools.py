@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import concurrent.futures
 import datetime
+import logging
 import threading
 import time
 import os
@@ -42,6 +43,7 @@ def format_code(_code: str):
             return f"{_code}.SZ"
     print("格式错误，转换失败")
     return _code
+
 
 def init_used_codes():
     datestr = datetime_to_str_day(now_datetime())
@@ -91,3 +93,30 @@ def get_stocks_limit_up_oneday(_date="20250312") -> pd.DataFrame:
     return df
 
 
+def pre_n_days_trade_date(n: int = 5) -> list:
+    """
+    # 返回截至今天，前n个交易日的日期（包括今天），结果从前往后的日期，是从近到远的顺序, 如果今天是交易日，则第一个会是今天。
+    :param n:
+    :return:
+    """
+    now_date = now_datetime()
+    _end = datetime_to_str_day(now_date)
+    pre_date = now_date - timedelta(days=max(n * 2, 15))  # 防止假期，结果数量不足
+    _begin = datetime_to_str_day(pre_date)
+    _code = "600000.sh"
+    df = pro.query("daily", ts_code=_code, start_date=_begin, end_date=_end)
+    # print(df)
+    _res = df['trade_date'].tolist()
+    return _res[:n]
+
+
+def get_oneday_stock_infos(_code: list, _date):
+    """
+    _code 是一个列表，eg: ['603173.sh', '605208.sh', '603665.sh'] 或 ['603173', '605208', '603665']
+    _date 是当天日期, eg: "20250101"
+    """
+    _code = [format_code(_code_str) for _code_str in _code]
+    _code_str = ','.join(_code)
+    logging.info(f"当前查询日期：f{_date}, 共查询{len(_code)}个: {_code_str}")
+    _df = pro.query("daily", ts_code=_code_str, trade_date=_date)
+    return _df

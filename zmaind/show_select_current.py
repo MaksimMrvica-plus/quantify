@@ -13,11 +13,15 @@ import mypack.stock_tools as stl
 import mypack.ts_tools as tstl
 import mypack.st_time
 
-txt = open(os.path.join(stl.ROOT_PATH, 'global_data', 'self_stocks'), 'r', encoding='utf-8')
+txt = open(os.path.join(stl.ROOT_PATH, 'global_data', 'self_stocks.sh'), 'r', encoding='utf-8')
 selfStocks = []
 for line in txt.readlines():
+    if not (line.startswith('6') or line.startswith('0')):
+        continue
     code, name = line.strip().split()
     selfStocks.append([code, name])
+
+[print(x + '->' + y) for x, y in selfStocks]
 
 
 def ak_api_show():
@@ -56,39 +60,52 @@ def update_data(_codes: list, root: tk.Tk, frame: tk.Frame):
 
     # 获取新的数据
     df = ts_api_show(_codes)
-    # 只取部分数据
-    df = df[['TS_CODE', 'NAME', 'PRICE', 'OPEN', 'PRE_CLOSE', 'TIME', 'DATE']]
     df.insert(3, 'CHANGE', '')
     for index, row in df.iterrows():
         change = round((row['PRICE'] - row['PRE_CLOSE']) / row['PRE_CLOSE'] * 100, 2)
-        change = str(change) + '% ↗' if change > 0 else str(change) + '% ↘'
+        # change = str(change) + '% ↗' if change > 0 else str(change) + '% ↘'
         df.at[index, 'CHANGE'] = change
+
+    # 只取部分数据
+    # df = df[['TS_CODE', 'NAME', 'PRICE', 'OPEN', 'PRE_CLOSE', 'TIME', 'DATE']]
+
+    df = df[['NAME', 'CHANGE']]
     # 按照change排序从高到低
     df = df.sort_values(by='CHANGE', ascending=False)
     # 将DataFrame转换为表格并显示在GUI中
     tree = ttk.Treeview(frame, columns=list(df.columns), show='headings')
     # 设置列宽
-    column_widths = {'TS_CODE': 80, 'NAME': 80, 'PRICE': 60, 'DATE': 80,
-                     'TIME': 60, 'OPEN': 60, 'PRE_CLOSE': 80, 'CHANGE': 80}
+    # column_widths = {'TS_CODE': 80, 'NAME': 80, 'PRICE': 60, 'DATE': 80,
+    #                  'TIME': 60, 'OPEN': 60, 'PRE_CLOSE': 80, 'CHANGE': 80}
+    column_widths = {'TS_CODE': 80, 'NAME': 80, 'PRICE': 60, 'TIME': 60, 'CHANGE': 80}
     for col in df.columns:
         tree.column(col, width=column_widths.get(col, 100), anchor=tk.E)  # 默认宽度为100
         tree.heading(col, text=col)
+    # 定义样式
+    tree.tag_configure('positive', font=('Arial', 10, 'bold'))  # 加粗字体
+    tree.tag_configure('negative', font=('Arial', 10))  # 正常字体
+
+    # 插入数据并应用样式
     for index, row in df.iterrows():
-        tree.insert("", "end", values=list(row))
+        values = [row['NAME'], f"{row['CHANGE']:.2f}%"]
+        if row['CHANGE'] > 0:
+            tree.insert("", "end", values=values, tags=('positive',))
+        else:
+            tree.insert("", "end", values=values, tags=('negative',))
+
     tree.pack(fill=tk.BOTH, expand=True)
 
     # 保存数据到Excel文件
     df.to_excel('ts_realtime_quote.xlsx', index=False)
 
     # 设置定时器，5秒后再次更新数据
-    root.after(5000, lambda: update_data(_codes, root, frame))
+    root.after(3000, lambda: update_data(_codes, root, frame))
 
 
 def run_tkinter_gui(_codes):
     # 创建主窗口
     root = tk.Tk()
-    root.title("Realtime Quote Display")
-
+    root.title("Display")
 
     # 创建一个框架来放置表格
     frame = ttk.Frame(root)
