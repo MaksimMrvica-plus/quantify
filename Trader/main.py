@@ -1,9 +1,12 @@
-import os.path  # To manage paths
+import os
 import sys  # To find out the script name (in argv[0])
 from datetime import datetime
 # Import the backtrader platform
 import backtrader as bt
 import pandas as pd
+
+DATA_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "global_data", "day_data"))
+print(DATA_ROOT)
 
 OPEN_HUANCE = 0
 if OPEN_HUANCE == 1:
@@ -16,7 +19,10 @@ END_PERIOD = 20
 
 MAPERIOD = 3
 
-FILE_PATH = r"D:\my_projects\quantify\global_data\day_data\603195.xlsx"
+FILE_PATH = os.path.join(DATA_ROOT, "603195.xlsx")
+FILE_PATH = r"D:\PythonProjects\quantify\prepare_data\update.xlsx"
+
+
 INIT_CASH = 1000000.0
 COMMISSION = 0.0001  # 万分之一， 0.01%
 FIXED_STAKE = 1000

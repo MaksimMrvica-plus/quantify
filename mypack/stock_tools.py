@@ -26,6 +26,22 @@ HISTORY_DATA_PATH = 'history_data'
 A_STOCK_CODE_NAME_DICT_PATH = 'A_stock_code_name.json'
 
 
+def code2akshare_symbol_name(code_str: str) -> str:
+    """
+    将股票代码转换为股票名称
+    :param code_str: 股票代码
+    :return: 股票名称
+    """
+    res = code_str
+    if code_str.startswith('6'):
+        res = 'sh' + code_str
+    elif code_str.startswith(('0', '3')):
+        res = 'sz' + code_str
+    elif code_str.startswith(('4', '8', '9')):
+        res = 'bj' + code_str
+    return res
+
+
 # 获取A主板常用股票代码和名称
 def save_A_code_name_dict_to_json(path_name: str) -> bool:
     """

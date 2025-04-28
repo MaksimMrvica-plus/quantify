@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
+import datetime
 import time
+
+import pandas as pd
 
 import mypack.stock_tools as stl
 import mypack.st_time as stt
@@ -20,26 +23,38 @@ all_codes = json.loads(open("all_codes.json", 'r').read())
 main_codes_list = list(main_codes.keys())
 all_codes_list = list(all_codes.keys())
 
-df = stl.DF_concat_oneday_stocks_info("20250428", main_codes_list)
-df.to_excel("test.xlsx")
-
-
-
-
-# for code, item in main_codes.items():
-#     # "000001": ["平安银行", "19910403", "sz"]
-#     name = item[0]
-#     start_date = item[1]
-#     location = item[2]
-#     if os.path.exists(os.path.join(DATA_ROOT, f"{code}.xlsx")):
-#         print(f"{code} {name} 已存在")
-#         continue
-#     end_date = stt.datetime_to_str_day(stt.now_datetime())
-#     symbol = item[2]+code
-#     print(f"NOW: {symbol}, {name}, {start_date} - {end_date}", end="")
-#     df = ak.stock_zh_a_daily(symbol=symbol, start_date=start_date, end_date=end_date,  adjust="qfq")
-#     df.to_excel(os.path.join(DATA_ROOT,  f"{code}.xlsx"), index=False)
-#     print(f"  加载完成, 共 {len(df)} 条数据")
-    # time.sleep(1)
+# df = stl.DF_concat_oneday_stocks_info("20250428", main_codes_list)
 # df.to_excel("test.xlsx")
-# print(df)
+
+# 遍历DATA_ROOT 目录下文件
+for file in os.listdir(DATA_ROOT):
+    if file.endswith(".xlsx"):
+        code = file.split(".")[0]
+
+        df = pd.read_excel(os.path.join(DATA_ROOT, file))
+        if len(df) == 0:
+            print(f"{code} 数据为空")
+            continue
+        # print(df)
+        last_date = df.iloc[-1]["date"]  # 2025-04-25 00:00:00
+        last_date_str = str(last_date).split(" ")[0].replace("-", "")  # 提取last_date 中的年月日，到 “yyyymmdd”格式
+        begin_date = str(last_date + datetime.timedelta(days=1)).split(" ")[0].replace("-", "")
+        end_date = stt.datetime_to_str_day(stt.now_datetime())
+
+        symbol = stl.code2akshare_symbol_name(code)
+        next_df = ak.stock_zh_a_daily(symbol=symbol, start_date=begin_date, end_date=end_date, adjust="qfq")
+        print(f"NOW: {code} -> {symbol}, 存储日期到：{last_date_str}, 获取更新开始日期：{begin_date}，"
+              f"结束日期为：{end_date}，增加记录为：{len(next_df)}条")
+
+        # df['date'] = df['date'].dt.strftime('%Y-%m-%d')
+        # next_df['date'] = next_df['date'].dt.strftime('%Y-%m-%d')
+        # 合并 df 和 next_df，把 next_df 的数据加到 df 末尾，根据相同列名
+        df3 = pd.concat([df, next_df], ignore_index=True)
+
+        # 将日期列转换为只包含日期的字符串格式
+        ret = stl.dataframe2excel('update.xlsx', df3, idx=False)
+
+
+    exit()
+
+    # df = ak.stock_zh_a_daily(symbol=symbol, start_date=start_date, end_date=end_date,  adjust="qfq")
