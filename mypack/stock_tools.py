@@ -1,15 +1,23 @@
 # -*- coding: utf-8 -*-
 import concurrent.futures
-import datetime
+
 import threading
 import time
 import os
-
+import akshare as ak
+import matplotlib
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+import pandas.core.frame
+import json
 import pandas.core.frame
 import mplfinance as mpf
+import collections
+from datetime import datetime
 
-from st_time import *
-from define import *
+import mypack.st_time as stt
+from mypack.define import *
 
 FILE_PATH = os.path.dirname(__file__)  # "...../quantify/mypack"
 ROOT_PATH = os.path.join(FILE_PATH, '..')  # "...../quantify"
@@ -123,7 +131,7 @@ def get_last_n_trade_date(n: int) -> list:
     """
     _list = []
     end = datetime.now().strftime("%Y%m%d")
-    start = (datetime.now() - timedelta(days=n)).strftime("%Y%m%d")
+    start = (datetime.now() - datetime.timedelta(days=n)).strftime("%Y%m%d")
     _df = ak.stock_zh_a_hist(symbol='000001', period="daily", start_date=start, end_date=end)
     dates = [x.strftime("%Y%m%d") for x in list(_df['日期'])]
     return dates
@@ -256,8 +264,8 @@ def init_file_dir_history_day(path_name: str, start_day: str, end_day: str) -> b
     if not os.path.exists(root_path):
         os.makedirs(root_path)
     # 创建股票子目录
-    s_date = str_day_to_datetime(start_day)
-    e_date = str_day_to_datetime(end_day)
+    s_date = stt.str_day_to_datetime(start_day)
+    e_date = stt.str_day_to_datetime(end_day)
 
     _day = s_date
     while _day <= e_date:
@@ -266,7 +274,7 @@ def init_file_dir_history_day(path_name: str, start_day: str, end_day: str) -> b
             save_path = os.path.join(root_path, _date)
             if not os.path.exists(save_path):
                 os.makedirs(save_path)
-        _day = _day + timedelta(days=1)
+        _day = _day + datetime.timedelta(days=1)
     return True
 
 
@@ -280,7 +288,7 @@ def get_stock_history_data(path_name: str, code_list: list, pre_day=365) -> bool
     :return:
     """
     e_date = datetime.now().strftime("%Y%m%d")
-    s_date = (datetime.now() - timedelta(days=pre_day)).strftime("%Y%m%d")
+    s_date = (datetime.now() - datetime.timedelta(days=pre_day)).strftime("%Y%m%d")
     try:
         _end = len(code_list)
         idx = 0
@@ -304,9 +312,9 @@ def get_stock_history_data(path_name: str, code_list: list, pre_day=365) -> bool
 
 def thread_for_GET_A_STOCK_HISTORY_DATA(path_name, code_list, s_date, e_date, update):
     _date = s_date
-    str_end_date = datetime_to_str_day(e_date)
+    str_end_date = stt.datetime_to_str_day(e_date)
     try:
-        str_date = datetime_to_str_day(_date)
+        str_date = stt.datetime_to_str_day(_date)
         if not is_trade_day(str_date):
             print(f"{str_date} 不是交易日，跳过")
             return True
@@ -339,7 +347,7 @@ def get_A_stock_history_data(path_name: str, code_list: list, pre_day=30, update
     :return:
     """
     e_date = datetime.now()
-    s_date = datetime.now() - timedelta(days=pre_day + 1)
+    s_date = datetime.now() - datetime.timedelta(days=pre_day + 1)
     # 单线程
     # _date = s_date
     # str_end_date = datetime_to_str_day(e_date)
@@ -377,7 +385,7 @@ def get_A_stock_history_data(path_name: str, code_list: list, pre_day=30, update
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
         # 提交任务到线程池
         while _date <= e_date:
-            _date = _date + timedelta(days=1)
+            _date = _date + datetime.timedelta(days=1)
             futures = {executor.submit(thread_for_GET_A_STOCK_HISTORY_DATA,
                                        path_name, code_list, _date, e_date, update)}
     return True
@@ -420,8 +428,8 @@ def check_stock_history_limit_up_date(pre_day: int) -> bool:
 
 
 def get_current_n_minutes_time_sharing(stock_code="000001", n=0, period="1") -> pd.DataFrame:
-    ss = ak.stock_zh_a_hist_min_em(stock_code, period="1", start_date=current_time_before_n_minutes(n + 1),
-                                   end_date=current_time_to_string())
+    ss = ak.stock_zh_a_hist_min_em(stock_code, period="1", start_date=stt.current_time_before_n_minutes(n + 1),
+                                   end_date=stt.current_time_to_string())
     return ss
 
 
@@ -454,9 +462,9 @@ def has_limit_up_in_last_month(pd):
     n = len(codes)
     i = 1
     now_date = datetime.now()
-    now_str = datetime_to_str_day(now_date)
-    pre_month = now_date - timedelta(days=30)
-    pre_str = datetime_to_str_day(pre_month)
+    now_str = stt.datetime_to_str_day(now_date)
+    pre_month = now_date - datetime.timedelta(days=30)
+    pre_str = stt.datetime_to_str_day(pre_month)
     print(f"查询日期在 {pre_str} 到 {now_str} 之间的涨停情况")
     for code in codes:
         print('\r', code, "\t", i, "/", n, end="")

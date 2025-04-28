@@ -1,16 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import akshare as ak
-import matplotlib
-import matplotlib.pyplot as plt
-import pandas as pd
-import numpy as np
-import pandas.core.frame
-import json
 import os
 from datetime import datetime, timedelta
-import collections
-from pandas import DataFrame
+
 
 
 def str_day_to_datetime(str_day: str) -> datetime.date:
