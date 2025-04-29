@@ -13,8 +13,8 @@ import tushare as ts
 import pandas.core.frame
 import mplfinance as mpf
 
-from st_time import *
-from define import *
+from mypack.st_time import *
+from mypack.define import *
 
 ts.set_token('c481515077951633f62f40f93473cee19825a2dc91cf7343b4b37a29')
 

@@ -81,7 +81,7 @@ def dataframe2excel(path_name, dataframe, idx=False) -> bool:
     :return:
     """
     excel_filename = path_name  # Excel文件名
-    dataframe.to_excel(excel_filename, index=True)  # index=False表示不将行索引写入
+    dataframe.to_excel(excel_filename, index=idx)  # index=False表示不将行索引写入
     return True
 
 

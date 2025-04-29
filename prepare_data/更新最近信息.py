@@ -15,16 +15,20 @@ print(DATA_ROOT)
 
 main_codes = json.loads(open("main_codes.json", 'r').read())
 all_codes = json.loads(open("all_codes.json", 'r').read())
-
-"""
-用一个 newest_date.json 来记录，每个code stock本地已有数据的最新日期，这样可以节约打开excel的时间
-"""
-
 main_codes_list = list(main_codes.keys())
 all_codes_list = list(all_codes.keys())
 
-# df = stl.DF_concat_oneday_stocks_info("20250428", main_codes_list)
-# df.to_excel("test.xlsx")
+"""
+用一个 lasted_date.json 来记录，每个code stock本地已有数据的最新日期，这样可以节约打开excel的时间
+但是好像并没有优化什么，因为后面添加新数据，必不可少的还是需要打开原excel文件
+"""
+
+# try:
+#     lasted_date = json.loads(open("lasted_date.json", 'r').read())
+# except:  # 没有就第一次运行并初始化
+#     print("lasted_date.json 文件不存在")
+#     lasted_date = {}
+
 
 # 遍历DATA_ROOT 目录下文件
 for file in os.listdir(DATA_ROOT):
@@ -43,7 +47,7 @@ for file in os.listdir(DATA_ROOT):
 
         symbol = stl.code2akshare_symbol_name(code)
         next_df = ak.stock_zh_a_daily(symbol=symbol, start_date=begin_date, end_date=end_date, adjust="qfq")
-        print(f"NOW: {code} -> {symbol}, 存储日期到：{last_date_str}, 获取更新开始日期：{begin_date}，"
+        print(f"NOW: {code} -> {symbol}, 存储日期到：{last_date_str} || 获取更新开始日期：{begin_date}，"
               f"结束日期为：{end_date}，增加记录为：{len(next_df)}条")
 
         # df['date'] = df['date'].dt.strftime('%Y-%m-%d')
@@ -52,7 +56,8 @@ for file in os.listdir(DATA_ROOT):
         df3 = pd.concat([df, next_df], ignore_index=True)
 
         # 将日期列转换为只包含日期的字符串格式
-        ret = stl.dataframe2excel('update.xlsx', df3, idx=False)
+        save_path = os.path.join(DATA_ROOT, file)
+        ret = stl.dataframe2excel(save_path, df3, idx=False)
 
 
     exit()

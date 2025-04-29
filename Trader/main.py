@@ -4,24 +4,25 @@ from datetime import datetime
 # Import the backtrader platform
 import backtrader as bt
 import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
 
 DATA_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "global_data", "day_data"))
 print(DATA_ROOT)
 
-OPEN_HUANCE = 0
+OPEN_HUANCE = 1
 if OPEN_HUANCE == 1:
     HUANCE = True
 else:
     HUANCE = False
 
 BEGIN_PERIOD = 3
-END_PERIOD = 20
+END_PERIOD = 30
 
-MAPERIOD = 3
+MAPERIOD = 30  # 单次数据参数
 
-FILE_PATH = os.path.join(DATA_ROOT, "603195.xlsx")
 FILE_PATH = r"D:\PythonProjects\quantify\prepare_data\update.xlsx"
-
+FILE_PATH = os.path.join(DATA_ROOT, "000002.xlsx")
 
 INIT_CASH = 1000000.0
 COMMISSION = 0.0001  # 万分之一， 0.01%
@@ -30,10 +31,18 @@ PERCENT_STAKE = 80  # 50%
 MAXCPUS = 1
 
 START_DATE = datetime(2020, 3, 6)  # 回测开始时间
-# START_DATE = None
+START_DATE = None
 
-# END_DATE = datetime(2025, 3, 7)  # 回测结束时间
+END_DATE = datetime(2025, 3, 7)  # 回测结束时间
 END_DATE = None
+
+# --------------------------------------------------
+# Draw Data
+WINNINGRATE = []  # 胜率
+HIGHESTVALUE = []  # 最高值
+LOWESTVALUE = []  # 最低值
+ENDINGVALUE = []  # 结束值
+YIELDRATE = []  # 收益率
 
 
 # --------------------------------------------------
@@ -53,6 +62,7 @@ class TestStrategy(bt.Strategy):
             print('%s, %s' % (dt.isoformat(), txt))
 
     def __init__(self):
+        self.init_value = self.broker.getvalue()
         self.success_times = 0
         self.fail_times = 0
         self.trade_times = 0
@@ -155,9 +165,17 @@ class TestStrategy(bt.Strategy):
                 self.order = self.sell()
 
     def stop(self):
-        self.log('(MA Period %2d) Ending Value %.2f 成功次数：%d, 失败次数：%d, 成功率：%.2f%%, 最高值：%.2f, 最低值：%.2f' %
-                 (self.params.maperiod, self.broker.getvalue(), self.success_times, self.fail_times,
-                  self.success_times / self.trade_times * 100, self.max_value, self.min_value), doprint=True)
+        self.log(
+            '(MA Period %2d) Ending Value %.2f 成功次数：%d, 失败次数：%d, 成功率：%.2f%%, 收益率： %.2f%%, 最高值：%.2f, 最低值：%.2f' %
+            (self.params.maperiod, self.broker.getvalue(), self.success_times, self.fail_times,
+             self.success_times / self.trade_times * 100, self.broker.getvalue() / self.init_value*100, self.max_value,
+             self.min_value), doprint=True)
+        if HUANCE:  # 环测时，只管查看不同MA period 表现。
+            WINNINGRATE.append(self.success_times / self.trade_times * 100)
+            HIGHESTVALUE.append(self.max_value)
+            LOWESTVALUE.append(self.min_value)
+            ENDINGVALUE.append(self.broker.getvalue())
+            YIELDRATE.append(self.broker.getvalue() / self.init_value)
 
 
 def read_and_format_excel(file_path):
@@ -225,3 +243,35 @@ if __name__ == '__main__':
 
     if not HUANCE:
         cerebro.plot()
+    if HUANCE:  # 环测时，只管查看不同MA period 表现。
+        periods = list(range(BEGIN_PERIOD, END_PERIOD))
+
+        fig, ax1 = plt.subplots(figsize=(12, 6))
+
+        # 左侧Y轴：胜率（绿色）
+        ax1.plot(periods, WINNINGRATE, label='Winning Rate (%)', color='green', marker='o', linestyle='--')
+        ax1.plot(periods, YIELDRATE, label='Yield Rate (%)', color='purple', marker='>', linestyle='--')
+        ax1.set_xlabel('Moving Average Period')
+        ax1.set_ylabel('Winning Rate (%)', color='green')
+        ax1.tick_params(axis='y', labelcolor='green')
+
+        # 右侧Y轴：最高值 & 最低值（蓝、红）
+        ax2 = ax1.twinx()
+        ax2.plot(periods, HIGHESTVALUE, label='Highest Value (¥)', color='blue', marker='^')
+        ax2.plot(periods, LOWESTVALUE, label='Lowest Value (¥)', color='red', marker='v')
+        ax2.plot(periods, ENDINGVALUE, label='Ending Value (¥)', color='yellow', marker='*')
+        ax2.set_ylabel('Portfolio Value (¥)')
+        ax2.tick_params(axis='y', labelcolor='black')
+
+        # 添加标题和图例
+        plt.title('Strategy Performance by MA Period (Dual Y-Axis Line Chart)')
+
+        # 合并图例
+        lines_1, labels_1 = ax1.get_legend_handles_labels()
+        lines_2, labels_2 = ax2.get_legend_handles_labels()
+        ax1.legend(lines_1 + lines_2, labels_1 + labels_2, loc='upper left', bbox_to_anchor=(0.1, 0.9))
+
+        plt.grid(True, linestyle='--', alpha=0.5)
+
+        fig.tight_layout()
+        plt.show()
