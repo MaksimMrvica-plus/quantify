@@ -10,7 +10,7 @@ import numpy as np
 DATA_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "global_data", "day_data"))
 print(DATA_ROOT)
 
-OPEN_HUANCE = 1
+OPEN_HUANCE = 11
 if OPEN_HUANCE == 1:
     HUANCE = True
 else:
@@ -19,10 +19,10 @@ else:
 BEGIN_PERIOD = 3
 END_PERIOD = 30
 
-MAPERIOD = 30  # 单次数据参数
+MAPERIOD = 18  # 单次数据参数
 
 FILE_PATH = r"D:\PythonProjects\quantify\prepare_data\update.xlsx"
-FILE_PATH = os.path.join(DATA_ROOT, "000002.xlsx")
+FILE_PATH = os.path.join(DATA_ROOT, "000004.xlsx")
 
 INIT_CASH = 1000000.0
 COMMISSION = 0.0001  # 万分之一， 0.01%

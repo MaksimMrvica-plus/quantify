@@ -4,7 +4,6 @@ import os
 from datetime import datetime, timedelta
 
 
-
 def str_day_to_datetime(str_day: str) -> datetime.date:
     """
     将字符串日期转换为日期类型
@@ -29,6 +28,10 @@ def now_datetime() -> datetime.date:
     :return: 日期类型
     """
     return datetime.now().date()
+
+
+def now_date_str() -> str:
+    return datetime_to_str_day(now_datetime())
 
 
 #   确保一个目录存在

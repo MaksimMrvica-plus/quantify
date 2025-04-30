@@ -1,6 +1,6 @@
 import logging
 import mypack.stock_tools as stl
-
+import mypack.st_time as stt
 
 def init_logger(save_dir_path, log_file_path):
     """
@@ -11,7 +11,7 @@ def init_logger(save_dir_path, log_file_path):
     :return: 日志记录器
     """
     # 创建保存数据目录
-    stl.ensure_dir_exists(save_dir_path)
+    stt.ensure_dir_exists(save_dir_path)
     # 配置日志记录器
     logging.basicConfig(
         level=logging.INFO,  # 设置日志级别为 DEBUG
