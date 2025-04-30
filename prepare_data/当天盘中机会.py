@@ -143,6 +143,7 @@ if __name__ == "__main__":
     now_date_str = stt.now_date_str()
     yest_info = pd.DataFrame()
     init_yest_flag = True  # 是否需要初始化昨天信息
+    print("初始化昨日信息...")
     if os.path.exists(os.path.join(tmp_data_root, now_date_str + ".xlsx")):  # 存在还要检查一下数量，如果数量太少可能有问题
         yest_info = pd.read_excel(os.path.join(tmp_data_root, now_date_str + ".xlsx"))
         print(f"已有本地数据，读取昨天信息数量: {len(yest_info)}, 已知标的数量:{MAXN}", end="")
@@ -160,11 +161,49 @@ if __name__ == "__main__":
     yest_info.to_excel(os.path.join(tmp_data_root, now_date_str + ".xlsx"), index=False)
     print("初始化完成，DataFrame数据类型:\n", yest_info.dtypes)
 
-    # 构建 字典 yest_dict  {code : [vol , amount]}
+    # 构建 字典 yest_dict  {code : [open,close,high,low,vol , amount]}
+    print("构建数据字典...", end="")
+    yest_data = {}
+    for index, row in yest_info.iterrows():
+        code = row['code']
+        yest_data[str(code)] = [row['open'], row['close'], row['high'], row['low'], row['volume'], row['amount']]
+    print("\r构建数据字典完成")
+    # print(yest_data)
     # 轮询实时数据
     while True:
-        now_df = ak.stock_zh_a_spot_em()
-
+        time.sleep(5)
+        # now_df = ak.stock_zh_a_spot_em()
+        now_df = pd.read_csv(r"D:\my_projects\quantify\prepare_data\now_df_em.csv", dtype={'代码': str})
+        for index, row in now_df.iterrows():
+            print(f"正在处理：{code}")
+            code = row['代码']
+            if len(code) == 8:
+                code = code[2:]
+            if code in yest_data:
+                now_price = row['最新价']
+                now_vol = row['成交量']
+                now_amplitude = row['涨跌幅']
+                now_open = row['今开']
+                now_yest_close = row['昨收']
+                now_vol_ratio = row['量比']
+                now_change_ratio = row['换手率']
+                now_pe = row['市盈率-动态']
+                # 成交量对比时，要注意单位，daydata中是 股数， nowdata中是 手数，统一转换成 股数 计算
+                vol_rate = now_vol*100 / yest_data[code][4]  # 成交量比值
+                if 0.5 < vol_rate < 0.8:
+                    print(f"✅代码：{code}, "
+                          f"昨日收盘价：{now_yest_close:.2f} —> "
+                          f"今日开盘价：{now_open:.2f} —> "
+                          f"最新价：{now_price:.2f}"
+                          f"\t涨跌幅：{row['涨跌幅']:.2f}%"
+                          f"\t成交量比值：{vol_rate:.2f}")
+                else:
+                    print(f"\t\t✅代码：{code}, "
+                          f"昨日收盘价：{now_yest_close:.2f} —> "
+                          f"今日开盘价：{now_open:.2f} —> "
+                          f"最新价：{now_price:.2f}"
+                          f"\t涨跌幅：{row['涨跌幅']:.2f}%"
+                          f"\t成交量比值：{vol_rate:.2f}")
 # 序号,代码,名称,最新价,涨跌幅,涨跌额,成交量,成交额,振幅,最高,最低,今开,昨收,量比,换手率,
 # 市盈率-动态,市净率,总市值,流通市值,涨速,5分钟涨跌,60日涨跌幅,年初至今涨跌幅
 # now_df = ak.stock_zh_a_spot_em()
